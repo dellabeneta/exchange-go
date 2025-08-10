@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: exchange-deployment
-  namespace: exchange
+  name: ex-deployment
+  namespace: ex
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: exchange
+      app: ex
   template:
     metadata:
       labels:
-        app: exchange
+        app: ex
     spec:
       containers:
-        - name: exchange
-          image: dellabeneta/exchange:dev
+        - name: ex
+          image: dellabeneta/ex:dev
           ports:
             - containerPort: 8080
           resources:
