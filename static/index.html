@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real VS Moedas</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            background-color: #f7f9fc;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+        h1 {
+            font-size: 1.8em;
+            text-align: left;
+            margin: 10px 10px 30px 10px;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1em;
+        }
+        th, td {
+            padding: 15px 10px;
+            text-align: left;
+            border-bottom: 1px solid #eef2f7;
+        }
+        th {
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+        td {
+            color: #343a40;
+        }
+        .moeda-col {
+            display: flex;
+            align-items: center;
+        }
+        /* CSS AJUSTADO PARA A TAG <img> */
+        .flag-icon {
+            width: 24px; /* Largura da bandeira */
+            height: auto;
+            margin-right: 15px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .text-right {
+            text-align: right;
+        }
+        .positivo {
+            color: #28a745;
+            font-weight: 500;
+        }
+        .negativo {
+            color: #dc3545;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Real VS Moedas</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Moeda</th>
+                    <th class="text-right">Compra</th>
+                    <th class="text-right">Venda</th>
+                    <th class="text-right">Var (%)</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-cotacoes">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Mapeamento continua o mesmo
+        const bandeiras = {
+            'USD': 'us',
+            'EUR': 'eu',
+            'GBP': 'gb',
+            'AUD': 'au',
+            'CAD': 'ca'
+        };
+
+        async function buscarCotacoes() {
+            const tbody = document.getElementById('tabela-cotacoes');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Buscando cotações...</td></tr>';
+
+            try {
+                const response = await fetch('/cotacao');
+                const cotacoes = await response.json();
+                tbody.innerHTML = '';
+
+                for (const sigla in cotacoes) {
+                    const moeda = cotacoes[sigla];
+                    
+                    const siglaCurta = sigla.replace('BRL', '');
+                    const nomeMoeda = moeda.name.split('/')[0];
+                    const bandeira = bandeiras[siglaCurta] || 'xx';
+                    
+                    const valorCompra = parseFloat(moeda.bid).toFixed(3).replace('.', ',');
+                    const valorVenda = parseFloat(moeda.ask).toFixed(3).replace('.', ',');
+                    const variacao = parseFloat(moeda.pctChange);
+
+                    const classeVariacao = variacao > 0 ? 'positivo' : 'negativo';
+                    const valorVariacao = variacao.toFixed(2).replace('.', ',');
+
+                    const tr = document.createElement('tr');
+                    // LÓGICA ALTERADA PARA USAR UMA TAG <img>
+                    tr.innerHTML = `
+                        <td>
+                            <div class="moeda-col">
+                                <img src="flags/${bandeira}.svg" class="flag-icon" alt="Bandeira ${nomeMoeda}">
+                                ${nomeMoeda}
+                            </div>
+                        </td>
+                        <td class="text-right">${valorCompra}</td>
+                        <td class="text-right">${valorVenda}</td>
+                        <td class="text-right ${classeVariacao}">${valorVariacao}%</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro ao buscar cotações.</td></tr>';
+                console.error('Erro:', error);
+            }
+        }
+
+        window.onload = buscarCotacoes;
+        setInterval(buscarCotacoes, 300000); 
+    </script>
+</body>
+</html>
